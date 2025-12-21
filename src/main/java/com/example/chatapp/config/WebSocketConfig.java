@@ -18,7 +18,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
       registry.addEndpoint("/chat-websocket")
-          .setAllowedOrigins("https://giaphu-chatty-connect.lovable.app")
-          .withSockJS();
+          .setAllowedOriginPatterns("http://localhost:3000",
+              "https://*.ngrok-free.dev",
+              "https://giaphu-chatty-connect.lovable.app");
     }
 }
