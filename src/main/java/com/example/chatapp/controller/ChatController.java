@@ -23,7 +23,7 @@ public class ChatController {
     newMessage.setContent(username + " has left the chat!");
     newMessage.setSender("SYSTEM");
     newMessage.setType("LEAVE");
-
+    newMessage.setUsername(username);
     return newMessage;
   }
 
@@ -34,7 +34,7 @@ public class ChatController {
     newMessage.setContent(username + " has joined the chat!");
     newMessage.setSender("SYSTEM");
     newMessage.setType("JOIN");
-
+    newMessage.setUsername(username);
     return newMessage;
   }
 }
