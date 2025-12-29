@@ -1,7 +1,8 @@
 package com.example.chatapp.listener;
 
 import com.example.chatapp.model.ChatMessage;
-import com.example.chatapp.state.OnlineUserStore;
+import com.example.chatapp.store.room.RoomPresenceStore;
+import com.example.chatapp.store.user.OnlineUserStore;
 import com.example.chatapp.util.ChatMesssageUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,10 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 public class WebSocketEventListener {
   private final SimpMessageSendingOperations messagingTemplate;
 
+  private final OnlineUserStore onlineUserStore;
+
+  private final RoomPresenceStore roomPresenceStore;
+
   @EventListener
   public void handleConnect(SessionConnectEvent event) {
     StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
@@ -25,15 +30,15 @@ public class WebSocketEventListener {
     String username = accessor.getFirstNativeHeader("username");
 
     if (username != null) {
-      OnlineUserStore.add(sessionId, username);
+      onlineUserStore.add(sessionId, username);
 
       ChatMessage msg = ChatMesssageUtil.sendFromSystem(
-          username + " has joined the chat",
+          username + " has connected",
           "JOIN",
           username
       );
 
-      log.info("Chat message from {}: {}", msg.getSender(), msg.getContent());
+      log.info("[{}] {}", msg.getSender(), msg.getContent());
       messagingTemplate.convertAndSend("/topic/messages", msg);
     }
   }
@@ -41,16 +46,16 @@ public class WebSocketEventListener {
   @EventListener
   public void handleDisconnect(SessionDisconnectEvent event) {
     String sessionId = event.getSessionId();
-    String username = OnlineUserStore.remove(sessionId);
+    String username = onlineUserStore.remove(sessionId);
 
     if (username != null) {
       ChatMessage msg = ChatMesssageUtil.sendFromSystem(
-          username + " has left the chat",
+          username + " has disconnected",
           "LEAVE",
           username
       );
 
-      log.info("Chat message from {}: {}", msg.getSender(), msg.getContent());
+      log.info("[{}] {}", msg.getSender(), msg.getContent());
       messagingTemplate.convertAndSend("/topic/messages", msg);
     }
   }
