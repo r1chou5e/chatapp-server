@@ -17,4 +17,9 @@ public interface RoomPresenceStore {
   * Get online users of the room
   * */
   Set<String> getUsers(String roomId);
+
+  /*
+   * Get rooms by users
+   * */
+  Set<String> getRoomsByUser(String username);
 }

@@ -1,7 +1,10 @@
 package com.example.chatapp.store.room;
 
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -42,5 +45,14 @@ public class InMemoryRoomPresenceStore implements RoomPresenceStore{
   @Override
   public Set<String> getUsers(String roomId) {
     return rooms.getOrDefault(roomId, Set.of());
+  }
+
+  @Override
+  public Set<String> getRoomsByUser(String username) {
+    return rooms.entrySet()
+        .stream()
+        .filter(entry -> entry.getValue().contains(username))
+        .map(Entry::getKey)
+        .collect(Collectors.toSet());
   }
 }

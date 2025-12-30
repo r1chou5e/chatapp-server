@@ -1,6 +1,7 @@
 package com.example.chatapp.listener;
 
 import com.example.chatapp.model.ChatMessage;
+import com.example.chatapp.service.RoomService;
 import com.example.chatapp.store.room.RoomPresenceStore;
 import com.example.chatapp.store.user.OnlineUserStore;
 import com.example.chatapp.util.ChatMesssageUtil;
@@ -21,7 +22,7 @@ public class WebSocketEventListener {
 
   private final OnlineUserStore onlineUserStore;
 
-  private final RoomPresenceStore roomPresenceStore;
+  private final RoomService roomService;
 
   @EventListener
   public void handleConnect(SessionConnectEvent event) {
@@ -47,6 +48,7 @@ public class WebSocketEventListener {
   public void handleDisconnect(SessionDisconnectEvent event) {
     String sessionId = event.getSessionId();
     String username = onlineUserStore.remove(sessionId);
+    roomService.leaveAllRooms(username);
 
     if (username != null) {
       ChatMessage msg = ChatMesssageUtil.sendFromSystem(

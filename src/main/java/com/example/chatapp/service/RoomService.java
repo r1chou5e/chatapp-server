@@ -3,6 +3,7 @@ package com.example.chatapp.service;
 import com.example.chatapp.store.room.RoomPresenceStore;
 import com.example.chatapp.store.room.RoomStore;
 import com.example.chatapp.util.RoomUtil;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +34,13 @@ public class RoomService {
     // optional: auto delete empty room
     if (roomPresenceStore.getUsers(roomId).isEmpty()) {
       roomStore.deleteRoom(roomId);
+    }
+  }
+
+  public void leaveAllRooms(String username) {
+    Set<String> joinedRooms = roomPresenceStore.getRoomsByUser(username);
+    for (String roomId: joinedRooms) {
+      leaveRoom(roomId, username);
     }
   }
 
