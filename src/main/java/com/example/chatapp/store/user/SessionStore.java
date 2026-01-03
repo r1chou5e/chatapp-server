@@ -25,6 +25,11 @@ public interface SessionStore {
   String getStompSessionIdByClientSessionId(String clientSessionId);
 
   /**
+   * Get session info by stomp session id
+   */
+  SessionInfo getSessionInfoByStompSessionId(String stompSessionId);
+
+  /**
    * Get sessions by username
    */
   Set<String> getSessionsByUsername(String username);

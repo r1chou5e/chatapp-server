@@ -53,6 +53,11 @@ public class InMemorySessionStore implements SessionStore {
   }
 
   @Override
+  public SessionInfo getSessionInfoByStompSessionId(String stompSessionId) {
+    return sessionInfoMap.get(stompSessionId);
+  }
+
+  @Override
   public Set<String> getSessionsByUsername(String username) {
     return sessionInfoMap.entrySet()
         .stream()

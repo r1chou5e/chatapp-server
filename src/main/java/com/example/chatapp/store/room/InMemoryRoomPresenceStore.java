@@ -14,21 +14,9 @@ public class InMemoryRoomPresenceStore implements RoomPresenceStore{
 
   @Override
   public void join(String roomId, String sessionId) {
-    Set<String> sessions = rooms.computeIfAbsent(
-        roomId,
-        k -> ConcurrentHashMap.newKeySet()
-    );
-
-    boolean added = sessions.add(sessionId);
-    if (!added) {
-      throw new IllegalStateException(
-          String.format(
-              "Session '%s' already joined room '%s'",
-              sessionId,
-              roomId
-          )
-      );
-    }
+    rooms
+        .computeIfAbsent(roomId, k -> ConcurrentHashMap.newKeySet())
+        .add(sessionId);
   }
 
   @Override

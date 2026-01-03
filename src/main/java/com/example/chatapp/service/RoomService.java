@@ -1,5 +1,6 @@
 package com.example.chatapp.service;
 
+import com.example.chatapp.object.session.SessionInfo;
 import com.example.chatapp.store.room.RoomPresenceStore;
 import com.example.chatapp.store.room.RoomStore;
 import com.example.chatapp.store.user.SessionStore;
@@ -45,9 +46,12 @@ public class RoomService {
   }
 
   public void leaveAllRooms(String stompSessionId) {
-    Set<String> joinedRooms = roomPresenceStore.getRoomsBySession(stompSessionId);
-    for (String roomId : joinedRooms) {
-      leaveRoom(roomId, stompSessionId);
+    SessionInfo info = sessionStore.getSessionInfoByStompSessionId(stompSessionId);
+    if (info != null) {
+      Set<String> joinedRooms = roomPresenceStore.getRoomsBySession(stompSessionId);
+      for (String roomId : joinedRooms) {
+        leaveRoom(roomId, info.getClientSessionId());
+      }
     }
   }
 
