@@ -1,6 +1,5 @@
 package com.example.chatapp.store.room;
 
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -10,21 +9,22 @@ import org.springframework.stereotype.Component;
 @Component
 public class InMemoryRoomPresenceStore implements RoomPresenceStore{
 
+  // roomId -> set of stompSessionId
   private final ConcurrentHashMap<String, Set<String>> rooms = new ConcurrentHashMap<>();
 
   @Override
-  public void join(String roomId, String username) {
-    Set<String> users = rooms.computeIfAbsent(
+  public void join(String roomId, String sessionId) {
+    Set<String> sessions = rooms.computeIfAbsent(
         roomId,
         k -> ConcurrentHashMap.newKeySet()
     );
 
-    boolean added = users.add(username);
+    boolean added = sessions.add(sessionId);
     if (!added) {
       throw new IllegalStateException(
           String.format(
-              "User '%s' already joined room '%s'",
-              username,
+              "Session '%s' already joined room '%s'",
+              sessionId,
               roomId
           )
       );
@@ -32,26 +32,26 @@ public class InMemoryRoomPresenceStore implements RoomPresenceStore{
   }
 
   @Override
-  public void leave(String roomId, String username) {
-    Set<String> users = rooms.get(roomId);
-    if (users != null) {
-      users.remove(username);
-      if (users.isEmpty()) {
+  public void leave(String roomId, String sessionId) {
+    Set<String> sessions = rooms.get(roomId);
+    if (sessions != null) {
+      sessions.remove(sessionId);
+      if (sessions.isEmpty()) {
         rooms.remove(roomId);
       }
     }
   }
 
   @Override
-  public Set<String> getUsers(String roomId) {
-    return rooms.getOrDefault(roomId, Set.of());
+  public Set<String> getSessions(String roomId) {
+    return Set.copyOf(rooms.getOrDefault(roomId, Set.of()));
   }
 
   @Override
-  public Set<String> getRoomsByUser(String username) {
+  public Set<String> getRoomsBySession(String sessionId) {
     return rooms.entrySet()
         .stream()
-        .filter(entry -> entry.getValue().contains(username))
+        .filter(entry -> entry.getValue().contains(sessionId))
         .map(Entry::getKey)
         .collect(Collectors.toSet());
   }

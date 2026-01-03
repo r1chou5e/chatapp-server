@@ -8,5 +8,5 @@ import lombok.Setter;
 @Setter
 public class JoinRoomRequest {
   @NotBlank
-  private String username;
+  private String clientSessionId;
 }

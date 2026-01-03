@@ -2,8 +2,11 @@ package com.example.chatapp.service;
 
 import com.example.chatapp.store.room.RoomPresenceStore;
 import com.example.chatapp.store.room.RoomStore;
+import com.example.chatapp.store.user.SessionStore;
 import com.example.chatapp.util.RoomUtil;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -13,35 +16,49 @@ public class RoomService {
 
   private final RoomStore roomStore;
   private final RoomPresenceStore roomPresenceStore;
+  private final SessionStore sessionStore;
 
-  public String createRoom(String username) {
+  public String createRoom(String clientSessionId) {
+    String stompSessionId = sessionStore.getStompSessionIdByClientSessionId(clientSessionId);
     String roomId = generateRoomId();
-    roomStore.createRoom(roomId, username);
-    roomPresenceStore.join(roomId, username);
+    roomStore.createRoom(roomId);
+    roomPresenceStore.join(roomId, stompSessionId);
     return roomId;
   }
 
-  public void joinRoom(String roomId, String username) {
+  public void joinRoom(String roomId, String clientSessionId) {
+    String stompSessionId = sessionStore.getStompSessionIdByClientSessionId(clientSessionId);
     if (!roomStore.exists(roomId)) {
       throw new IllegalStateException("Room does not exist");
     }
-    roomPresenceStore.join(roomId, username);
+    roomPresenceStore.join(roomId, stompSessionId);
   }
 
-  public void leaveRoom(String roomId, String username) {
-    roomPresenceStore.leave(roomId, username);
+  public void leaveRoom(String roomId, String clientSessionId) {
+    String stompSessionId = sessionStore.getStompSessionIdByClientSessionId(clientSessionId);
+    roomPresenceStore.leave(roomId, stompSessionId);
 
     // optional: auto delete empty room
-    if (roomPresenceStore.getUsers(roomId).isEmpty()) {
+    if (roomPresenceStore.getSessions(roomId).isEmpty()) {
       roomStore.deleteRoom(roomId);
     }
   }
 
-  public void leaveAllRooms(String username) {
-    Set<String> joinedRooms = roomPresenceStore.getRoomsByUser(username);
-    for (String roomId: joinedRooms) {
-      leaveRoom(roomId, username);
+  public void leaveAllRooms(String stompSessionId) {
+    Set<String> joinedRooms = roomPresenceStore.getRoomsBySession(stompSessionId);
+    for (String roomId : joinedRooms) {
+      leaveRoom(roomId, stompSessionId);
     }
+  }
+
+  /**
+   * Get online users (usernames) in a room.
+   */
+  public Set<String> getUsers(String roomId) {
+    return roomPresenceStore.getSessions(roomId).stream()
+        .map(sessionStore::getUsername)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
   }
 
   private String generateRoomId() {

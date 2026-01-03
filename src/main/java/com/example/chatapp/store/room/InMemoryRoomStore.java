@@ -10,17 +10,13 @@ public class InMemoryRoomStore implements RoomStore {
   private final Set<String> rooms = ConcurrentHashMap.newKeySet();
 
   @Override
-  public void createRoom(String roomId, String createdBy) {
-    if (!rooms.add(roomId)) {
-      throw new IllegalStateException("Room already exists");
-    }
+  public void createRoom(String roomId) {
+    rooms.add(roomId);
   }
 
   @Override
   public void deleteRoom(String roomId) {
-    if (!rooms.remove(roomId)) {
-      throw new IllegalStateException("Room not exists");
-    }
+    rooms.remove(roomId);
   }
 
   @Override

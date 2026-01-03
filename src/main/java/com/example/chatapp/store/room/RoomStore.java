@@ -6,7 +6,7 @@ public interface RoomStore {
   /*
   * Create new room by username
   * */
-  void createRoom(String roomId, String createdBy);
+  void createRoom(String roomId);
 
   /*
    * Delete the room

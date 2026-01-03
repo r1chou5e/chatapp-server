@@ -1,9 +1,9 @@
 package com.example.chatapp.listener;
 
 import com.example.chatapp.model.ChatMessage;
+import com.example.chatapp.object.session.SessionInfo;
 import com.example.chatapp.service.RoomService;
-import com.example.chatapp.store.room.RoomPresenceStore;
-import com.example.chatapp.store.user.OnlineUserStore;
+import com.example.chatapp.store.user.SessionStore;
 import com.example.chatapp.util.ChatMesssageUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,44 +20,54 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 public class WebSocketEventListener {
   private final SimpMessageSendingOperations messagingTemplate;
 
-  private final OnlineUserStore onlineUserStore;
+  private final SessionStore sessionStore;
 
   private final RoomService roomService;
 
   @EventListener
   public void handleConnect(SessionConnectEvent event) {
     StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
-    String sessionId = accessor.getSessionId();
+    String stompSessionId = accessor.getSessionId();
     String username = accessor.getFirstNativeHeader("username");
+    String clientSessionId = accessor.getFirstNativeHeader("clientSessionId");
 
-    if (username != null) {
-      onlineUserStore.add(sessionId, username);
-
-      ChatMessage msg = ChatMesssageUtil.sendFromSystem(
-          username + " has connected",
-          "JOIN",
-          username
-      );
-
-      log.info("[{}] {}", msg.getSender(), msg.getContent());
-      messagingTemplate.convertAndSend("/topic/messages", msg);
+    if (username == null) {
+      log.warn("Session {} connected without username", stompSessionId);
+      return;
     }
+
+    sessionStore.add(clientSessionId, stompSessionId, username);
+
+    ChatMessage msg = ChatMesssageUtil.sendFromSystem(
+        username + " has connected",
+        "JOIN",
+        username
+    );
+
+    log.info(
+        "[CONNECT] WebSocket | clientSessionId={} stompSessionId={} username={}",
+        clientSessionId, stompSessionId, username
+    );
+    messagingTemplate.convertAndSend("/topic/messages", msg);
   }
 
   @EventListener
   public void handleDisconnect(SessionDisconnectEvent event) {
-    String sessionId = event.getSessionId();
-    String username = onlineUserStore.remove(sessionId);
-    roomService.leaveAllRooms(username);
+    String stompSessionId = event.getSessionId();
+    SessionInfo info = sessionStore.remove(stompSessionId);
+      roomService.leaveAllRooms(stompSessionId);
 
-    if (username != null) {
+    if (info != null) {
       ChatMessage msg = ChatMesssageUtil.sendFromSystem(
-          username + " has disconnected",
+          info.getUsername() + " has disconnected",
           "LEAVE",
-          username
+          info.getUsername()
       );
 
-      log.info("[{}] {}", msg.getSender(), msg.getContent());
+      log.info(
+          "[DISCONNECT] WebSocket | stompSessionId={} username={}",
+          stompSessionId, info.getUsername()
+      );
       messagingTemplate.convertAndSend("/topic/messages", msg);
     }
   }
