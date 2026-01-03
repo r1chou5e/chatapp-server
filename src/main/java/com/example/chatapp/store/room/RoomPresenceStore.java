@@ -37,4 +37,13 @@ public interface RoomPresenceStore {
    * @return set of roomIds that the session is currently in
    */
   Set<String> getRoomsBySession(String sessionId);
+
+  /**
+   * Check whether a WebSocket session is currently a member of a room.
+   *
+   * @param roomId    the room identifier
+   * @param sessionId the WebSocket session identifier
+   * @return true if the session is currently joined in the room, false otherwise
+   */
+  boolean isInRoom(String roomId, String sessionId);
 }

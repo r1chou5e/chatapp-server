@@ -43,4 +43,9 @@ public class InMemoryRoomPresenceStore implements RoomPresenceStore{
         .map(Entry::getKey)
         .collect(Collectors.toSet());
   }
+
+  @Override
+  public boolean isInRoom(String roomId, String sessionId) {
+    return rooms.get(roomId).contains(sessionId);
+  }
 }
