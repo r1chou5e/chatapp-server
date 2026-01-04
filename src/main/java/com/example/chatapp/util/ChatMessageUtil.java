@@ -2,9 +2,9 @@ package com.example.chatapp.util;
 
 import com.example.chatapp.model.ChatMessage;
 
-public final class ChatMesssageUtil {
+public final class ChatMessageUtil {
 
-  private ChatMesssageUtil() {}
+  private ChatMessageUtil() {}
 
   public static ChatMessage sendFromSystem(String content, String type, String username) {
     ChatMessage msg = new ChatMessage();

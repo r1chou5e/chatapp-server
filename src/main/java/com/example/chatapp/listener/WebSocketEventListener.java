@@ -4,7 +4,7 @@ import com.example.chatapp.model.ChatMessage;
 import com.example.chatapp.object.session.SessionInfo;
 import com.example.chatapp.service.RoomService;
 import com.example.chatapp.store.user.SessionStore;
-import com.example.chatapp.util.ChatMesssageUtil;
+import com.example.chatapp.util.ChatMessageUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -36,9 +36,14 @@ public class WebSocketEventListener {
       return;
     }
 
+    if (clientSessionId == null) {
+      log.warn("Session {} connected without clientSessionId", stompSessionId);
+      return;
+    }
+
     sessionStore.add(clientSessionId, stompSessionId, username);
 
-    ChatMessage msg = ChatMesssageUtil.sendFromSystem(
+    ChatMessage msg = ChatMessageUtil.sendFromSystem(
         username + " has connected",
         "JOIN",
         username
@@ -58,7 +63,7 @@ public class WebSocketEventListener {
       roomService.leaveAllRooms(stompSessionId);
 
     if (info != null) {
-      ChatMessage msg = ChatMesssageUtil.sendFromSystem(
+      ChatMessage msg = ChatMessageUtil.sendFromSystem(
           info.getUsername() + " has disconnected",
           "LEAVE",
           info.getUsername()

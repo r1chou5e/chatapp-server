@@ -46,6 +46,7 @@ public class InMemoryRoomPresenceStore implements RoomPresenceStore{
 
   @Override
   public boolean isInRoom(String roomId, String sessionId) {
-    return rooms.get(roomId).contains(sessionId);
+    Set<String> sessions = rooms.get(roomId);
+    return sessions != null && sessions.contains(sessionId);
   }
 }
